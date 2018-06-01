@@ -11,7 +11,7 @@ import UIKit
 class TodoeyViewController: UITableViewController //, UITableViewDelegate
 {
     
-    let itemArray = ["no 1", "no 2", "no 3"]
+    var itemArray = ["no 1", "no 2", "no 3"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -54,6 +54,36 @@ class TodoeyViewController: UITableViewController //, UITableViewDelegate
         
         tableView.deselectRow(at: indexPath, animated: true )
     }
+    
+    
+    
+    //MARK - Add new items
+    
+    @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
+        
+        var textField = UITextField()
+        
+        let alert = UIAlertController(title: "Add Todoey Item", message: "", preferredStyle: .alert)
+        let action = UIAlertAction(title: "Add Item", style: .default) { (action) in
+           
+            // what will happen when user click add button
+           self.itemArray.append(textField.text!)
+            self.tableView.reloadData()
+        }
+        
+        
+                // to add text field to our alert
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Creat New Item"
+            textField = alertTextField
+        }
+        
+        
+        alert.addAction(action)
+        present(alert,animated: true,completion: nil)
+        
+    }
+    
     
 }
 
