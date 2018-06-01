@@ -12,29 +12,14 @@ class TodoeyViewController: UITableViewController
 {
     
     var itemArray = [item]()
-    let defaults = UserDefaults.standard
-
+   
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     override func viewDidLoad() {
         super.viewDidLoad()
        
-       let newItem = item()
-        newItem.titel = "Omar"
-        itemArray.append(newItem)
-        
-        let newItem2 = item()
-        newItem2.titel = "mohd"
-        itemArray.append(newItem2)
-        
-        let newItem3 = item()
-        newItem3.titel = "qq"
-        itemArray.append(newItem3)
-        
-         
-        
-        if let items = defaults.array(forKey: "TodoListArray") as?   [item] {
-            itemArray = items
-        }
+    
+             loadData()
     }
 
     
@@ -77,6 +62,7 @@ class TodoeyViewController: UITableViewController
         
         tableView.reloadData()
         
+        saveData()
 
         tableView.deselectRow(at: indexPath, animated: true )
     }
@@ -99,7 +85,9 @@ class TodoeyViewController: UITableViewController
             
            self.itemArray.append(newItem)
             
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
+            self.saveData()
+           
+            
             
             self.tableView.reloadData()
         }
@@ -117,6 +105,31 @@ class TodoeyViewController: UITableViewController
         
     }
     
+    func saveData() {
+        let encoder = PropertyListEncoder()
+        
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print("Error encoding item Array \(error)")
+        }
+    }
+    
+    
+    func loadData()  {
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            do {
+                itemArray = try decoder.decode([item].self , from: data)
+            }catch{
+                print("error decoding it arrat \(error)")
+            }
+        }
+        
+    }
     
 }
+
+
 
