@@ -119,7 +119,7 @@ class TodoeyViewController: UITableViewController
     
     func loadData()  {
         if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()
+            let decoder = PropertyListDecoder()  
             do {
                 itemArray = try decoder.decode([item].self , from: data)
             }catch{
