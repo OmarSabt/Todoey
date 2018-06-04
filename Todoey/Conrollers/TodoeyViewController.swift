@@ -7,19 +7,25 @@
 //
 
 import UIKit
+import CoreData
 
 class TodoeyViewController: UITableViewController
 {
     
-    var itemArray = [item]()
-   
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    var itemArray = [Item]()
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+
+    var selectedCategory : Category? {
+        didSet {
+            loadData()
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-       
-    
-             loadData()
+      
+    print (FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
+        loadData()
     }
 
     
@@ -38,7 +44,7 @@ class TodoeyViewController: UITableViewController
         
         let item = itemArray[indexPath.row]
         
-        cell.textLabel?.text = item.titel
+        cell.textLabel?.text = item.title
         
         
         // Ternary operator ==>
@@ -80,9 +86,11 @@ class TodoeyViewController: UITableViewController
            
             // what will happen when user click add button
             
-            let newItem = item()
-            newItem.titel = textField.text!
             
+            let newItem = Item(context:self.context)
+            newItem.title = textField.text!
+            newItem.done = false
+            newItem.parentCategorey = self.selectedCategory
            self.itemArray.append(newItem)
             
             self.saveData()
@@ -106,24 +114,67 @@ class TodoeyViewController: UITableViewController
     }
     
     func saveData() {
-        let encoder = PropertyListEncoder()
-        
+       
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+           try context.save()
         }catch{
-            print("Error encoding item Array \(error)")
+            print("Error Saving Context \(error)")
         }
+        
+        
+        self.tableView.reloadData()
     }
     
     
-    func loadData()  {
-        if let data = try? Data(contentsOf: dataFilePath!){
-            let decoder = PropertyListDecoder()  
+    
+    func loadData(with request : NSFetchRequest<Item> = Item.fetchRequest() , predicate :NSPredicate? = nil)  {
+   
+        
+        let categotyPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+
+        
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categotyPredicate , additionalPredicate] )
+        } else {
+            request.predicate = categotyPredicate
+        }
+        
+
+        
             do {
-                itemArray = try decoder.decode([item].self , from: data)
+               itemArray = try context.fetch(request)
             }catch{
-                print("error decoding it arrat \(error)")
+                print("Error fetching data from context \(error)")
+            }
+        
+        tableView.reloadData()
+        
+        }
+
+    
+    
+}
+
+
+//MARK: - Search bar method
+
+extension TodoeyViewController : UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        let predicate = NSPredicate (format: "title CONTAINS[cd] %@", searchBar.text!)
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadData(with: request , predicate: predicate)
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        if searchBar.text?.count == 0 {
+            loadData()
+            
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
             }
         }
         
