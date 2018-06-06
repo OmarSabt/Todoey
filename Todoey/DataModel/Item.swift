@@ -2,13 +2,17 @@
 //  Item.swift
 //  Todoey
 //
-//  Created by Omar AlAli on 6/1/18.
+//  Created by Omar AlAli on 6/5/18.
 //  Copyright © 2018 Omar AlAli. All rights reserved.
 //
 
 import Foundation
+import RealmSwift
 
-class item : Codable {
-    var titel : String = ""
-    var done : Bool = false
+class Item: Object {
+    @objc dynamic var title : String = ""
+    @objc dynamic var done : Bool = false
+    @objc dynamic var dateCreated : Date?
+    
+    let parentCategory = LinkingObjects (fromType: Category.self, property: "items")
 }
